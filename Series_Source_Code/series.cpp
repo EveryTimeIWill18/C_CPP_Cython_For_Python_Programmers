@@ -13,6 +13,7 @@ More will be added as I continue my work on this project.
 #include <filesystem>
 #include <map>
 #include <vector>
+#include <initializer_list>
 
 template<typename KeyType, typename ValueType>
 class Series {
@@ -21,6 +22,7 @@ class Series {
         ValueType* _data;
         size_t size;
         int position;
+        // int index;
     
     public:
         // This class is used to read in data into the Series
@@ -50,7 +52,7 @@ class Series {
                 }
 
                 Series<KeyType, ValueType> createFromCSV(const std::string& filePath, char delimiter, int columnNumber) {
-                    // Get the sie of the file
+                    // Get the size of the file
                     size_t numLines = getLineCount(filePath);
                     Series<KeyType, ValueType> series(numLines);    // Create an instance of the series of size numLines
 
@@ -102,55 +104,84 @@ class Series {
         };
 
     public:
-    // Default constructor
-    Series() : size(0), _data(nullptr), position(0) {}
+        // Default constructor
+        Series() : size(0), _data(nullptr), position(0) {}
 
-    // Initial constructor
-    Series(KeyType columnName, size_t size) {
-        this->size = size;
-        this->position = 0;
-        _columnName = columnName;
-        _data = new ValueType[this->size];
-        std::cout << "Series created with size := " << this->size << "\n";
-    }
+        // Initial constructor
+        Series(KeyType columnName, size_t size) {
+            this->size = size;
+            this->position = 0;
+            _columnName = columnName;
+            _data = new ValueType[this->size];
+            std::cout << "Series created with size := " << this->size << "\n";
+        }
+        // Constructor with only size set
+        Series(size_t size) {
+            this->size = size;
+            this->position = 0;
+            _data = new ValueType[this->size];
+        }
+        // Constructor with initializer list
+        Series(std::initializer_list<ValueType> data) {
+            // Copy over the data
+            this->size = data.size();
+            _data = new ValueType[data.size()];
 
-    Series(size_t size) {
-        this->size = size;
-        this->position = 0;
-        _data = new ValueType[this->size];
-    }
-
-    void setColumnName(KeyType columnName) {
-        this->_columnName = columnName;
-        std::cout << "ColumnName := " << this->_columnName << "\n";
-    }
-
-    KeyType getColumnName() {
-        return _columnName;
-    }
-
-    ~Series() {
-        delete[] _data;      // delete the data
-        this->size = -1;     // to indicate series was destroyed
-        this->position = -1; // to indicate no data
-        _data = nullptr;
-    }
-
-    void insert(ValueType value) {
-        if (position > size) {
-            _data[position] = value;
-            position++;
+            // std::cout << "data.size() := " << data.size() << "\n";
+            // for (int value : data ) {
+            //     std::cout << "value := " << value << "\n";
+            // }
+            std::copy(data.begin(), data.end(), _data);
+            this->position = 0;
+        }
+         // Access data at a given index
+        ValueType& operator[](int index) {
+            return _data[index];
         }
 
-    }
-    int getIndex() {
-        return position;
-    }
+        // Access data at a given index
+        const ValueType& operator[](int index) const {
+            if (index < size) {
+                return _data[index];
+            } 
+        }
 
+        void setColumnName(KeyType columnName) {
+            this->_columnName = columnName;
+            std::cout << "ColumnName := " << this->_columnName << "\n";
+        }
 
-    private:
+        KeyType getColumnName() {
+            return _columnName;
+        }
 
+        ~Series() {
+            delete[] _data;      // delete the data
+            this->size = -1;     // to indicate series was destroyed
+            this->position = -1; // to indicate no data
+            _data = nullptr;
+        }
+
+        void insert(ValueType value) {
+            if (position > size) {
+                _data[position] = value;
+                position++;
+            }
+
+        }
+        int getIndex() {
+            return position;
+        }
+
+        size_t Size() {
+            return size;
+        }
 };
+
+
+
+
+
 
 
 int main() {
@@ -163,10 +194,20 @@ int main() {
 
 
     Series<std::string, double>csv_series = series_reader.createFromCSV(fileName, ',', 1);
+    Series<std::string, double>my_series = {1.1, 2.2, 3.3, 4.4, 5.6, 99.1, 23.56789};
+    std::cout << "my_series[2] := " << my_series[2] << "\n\n";
+    std::cout << "my_series.Size() := " << my_series.Size() << "\n\n\n\n\n\n";
+
+    // std::cout << "Number of rows := " << csv_series.getSize() << "\n";
 
 
-    size_t line_count;
+    // size_t line_count;
     // line_count =  series3.getLineCount(fileName);
+    // std::cout << "LINE COUNT := " << line_count << "\n";
+
+    // static size_t line_count;
+    // // line_count = Series<std::string, double>::SeriesReader::getLineCount(fileName);
+    // series1::SeriesReader<std::string, double>::getline(fileName);
 
     return 0;
 }
